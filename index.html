@@ -1,0 +1,90 @@
+<!DOCTYPE >
+<html>
+  <head>
+    <title>Home</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+  <body>
+    <style>
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #f1f1f1;
+        cursor: pointer;
+      }
+
+      .imgInp {
+        display: none;
+      }
+    </style>
+    <!-- image upload  -->
+    <div>
+      <label class="btn" for="photo">Chọn ảnh vé số từ album</label>
+      <input
+        class="imgInp"
+        id="photo"
+        type="file"
+        onchange="loadFile(event)"
+        accept="image/*"
+        style="visibility: hidden"
+      />
+    </div>
+    <br />
+    <div>
+      <label class="btn" for="capture">Chụp ảnh vé số</label>
+      <input
+        id="capture"
+        class="imgInp"
+        type="file"
+        onchange="loadFile(event)"
+        accept="image/*"
+        capture
+        style="visibility: hidden"
+      />
+    </div>
+
+    <img id="imgOut" width="50%" />
+    <button class="btn" onclick="getTicketResult()">Xem kết quả vé số</button>
+
+    <!-- AI -->
+    <script>
+      // helpers
+      let imgUrl = null;
+      const loadFile = function (evt) {
+        const [file] = evt.target.files;
+        imgUrl = URL.createObjectURL(file);
+        if (file) {
+          htmx.find("#imgOut").setAttribute("src", URL.createObjectURL(file));
+        }
+      };
+
+      // AI
+      function getTicketResult() {
+        if (!imgUrl) {
+          alert("Vui lòng chọn ảnh vé số");
+          return;
+        }
+        const createWorker = Tesseract.createWorker;
+
+        (async () => {
+          const worker = await createWorker("vie");
+          await worker.setParameters({
+            tessedit_char_whitelist: "0123456789",
+          });
+
+          const ret = await worker.recognize(imgUrl);
+          alert(ret.data.text);
+          await worker.terminate();
+        })();
+      }
+    </script>
+
+    <!-- libs -->
+    <script
+      src="https://unpkg.com/htmx.org@2.0.3/dist/htmx.js"
+      integrity="sha384-BBDmZzVt6vjz5YbQqZPtFZW82o8QotoM7RUp5xOxV3nSJ8u2pSdtzFAbGKzTlKtg"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  </body>
+</html>
